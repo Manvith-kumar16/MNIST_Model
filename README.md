@@ -84,13 +84,13 @@ python digit_cascade.py --test-cascade --models-dir models --threshold 0.5 --lim
 Place your handwritten digit image in the project folder (e.g., `my_scan.jpg`) and run:
 
 ```bash
-python digit_cascade.py --predict-file my_scan.jpg --models-dir models --threshold 0.5
+python digit_cascade.py --predict-file 7.jpg --models-dir models --threshold 0.5
 ```
 
 Example with a subfolder:
 
 ```bash
-python digit_cascade.py --predict-file images/digit2.png --models-dir models
+python digit_cascade.py --predict-file images/4.jpg --models-dir models
 ```
 
 ---
