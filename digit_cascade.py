@@ -68,7 +68,6 @@ class BinaryMNIST(Dataset):
 
     def __getitem__(self, idx):
         img, label = self.mnist[idx]
-        # label -> 1 if equal to target digit else 0
         bin_label = 1 if label == self.digit else 0
         if self.transform:
             img = self.transform(img)
@@ -83,11 +82,10 @@ def train_one_digit(digit, epochs=5, batch_size=128, lr=1e-3, models_dir="models
 
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))   # MNIST statistics
+        transforms.Normalize((0.1307,), (0.3081,))
     ])
 
     dataset = BinaryMNIST(root="./data", digit=digit, train=True, transform=transform, download=True)
-    # create a small validation split
     val_size = 5000
     train_size = len(dataset) - val_size
     train_ds, val_ds = random_split(dataset, [train_size, val_size])
@@ -121,7 +119,6 @@ def train_one_digit(digit, epochs=5, batch_size=128, lr=1e-3, models_dir="models
         acc = correct / total
         print(f"Epoch {epoch} Train Loss: {avg_loss:.4f}, Train Acc: {acc:.4f}")
 
-        # validation
         model.eval()
         val_loss = 0.0
         val_correct = 0
@@ -137,7 +134,6 @@ def train_one_digit(digit, epochs=5, batch_size=128, lr=1e-3, models_dir="models
                 val_total += labels.numel()
         print(f"Epoch {epoch} Val Loss: {val_loss/val_total:.4f}, Val Acc: {val_correct/val_total:.4f}")
 
-    # save model
     os.makedirs(models_dir, exist_ok=True)
     save_path = os.path.join(models_dir, f"digit_{digit}.pt")
     torch.save(model.state_dict(), save_path)
@@ -152,7 +148,7 @@ def train_all_digits(epochs=3, batch_size=128, lr=1e-3, models_dir="models"):
         train_one_digit(digit=d, epochs=epochs, batch_size=batch_size, lr=lr, models_dir=models_dir)
 
 # -------------------------------------------------------
-# Utilities: load all models
+# Load all models
 # -------------------------------------------------------
 def load_all_models(models_dir="models", device=None):
     device = device or (torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"))
@@ -168,34 +164,32 @@ def load_all_models(models_dir="models", device=None):
     return models, device
 
 # -------------------------------------------------------
-# Preprocess external image (auto-invert if background is light)
+# Preprocess external image
 # -------------------------------------------------------
-from PIL import Image, ImageOps  # make sure this is at the top of your file
-
 def prepare_image_for_mnist(path_or_pil, device=None):
-    """
-    Accepts a path or PIL.Image. Returns a tensor (1,28,28) normalized with MNIST stats.
-    Auto-inverts if background appears white.
-    """
     if isinstance(path_or_pil, str):
         img = Image.open(path_or_pil).convert("L")
     else:
         img = path_or_pil.convert("L")
 
-    # Resize to 28x28
-    img = img.resize((28, 28), Image.Resampling.LANCZOS)
+    # Pillow >=10: use Resampling.LANCZOS
+    try:
+        resample = Image.Resampling.LANCZOS
+    except AttributeError:
+        resample = Image.ANTIALIAS
 
-    # auto-invert: MNIST digits are white on black background
+    img = img.resize((28, 28), resample)
+
+    # auto-invert
     arr = np.array(img).astype(np.float32) / 255.0
-    mean = arr.mean()
-    if mean > 0.5:  # background looks light
+    if arr.mean() > 0.5:
         img = ImageOps.invert(img)
 
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
     ])
-    tensor = transform(img).unsqueeze(0)  # (1,1,28,28)
+    tensor = transform(img).unsqueeze(0)
     return tensor
 
 # -------------------------------------------------------
@@ -208,12 +202,11 @@ def cascade_predict_image(img_path, models_dir="models", threshold=0.5):
     with torch.no_grad():
         for digit, model in enumerate(models):
             logit = model(x).item()
-            prob = 1.0 / (1.0 + np.exp(-logit))  # sigmoid
+            prob = 1.0 / (1.0 + np.exp(-logit))
             print(f"Model {digit} prob={prob:.4f}")
             if prob >= threshold:
                 return digit, prob
 
-    # if none passed threshold, return highest probability as best guess
     probs = []
     with torch.no_grad():
         for model in models:
@@ -223,7 +216,7 @@ def cascade_predict_image(img_path, models_dir="models", threshold=0.5):
     return best, float(probs[best])
 
 # -------------------------------------------------------
-# Evaluate cascade on MNIST test set (sequential)
+# Evaluate cascade
 # -------------------------------------------------------
 def evaluate_cascade_on_mnist_test(models_dir="models", threshold=0.5, limit=None):
     models, device = load_all_models(models_dir=models_dir)
@@ -239,7 +232,6 @@ def evaluate_cascade_on_mnist_test(models_dir="models", threshold=0.5, limit=Non
         if limit and i >= limit:
             break
         img = img.to(device)
-        # cascade
         chosen = None
         with torch.no_grad():
             for digit, model in enumerate(models):
@@ -248,7 +240,6 @@ def evaluate_cascade_on_mnist_test(models_dir="models", threshold=0.5, limit=Non
                     chosen = digit
                     break
         if chosen is None:
-            # fallback to max prob
             with torch.no_grad():
                 probs = [torch.sigmoid(m(img)).item() for m in models]
             chosen = int(np.argmax(probs))
