@@ -19,7 +19,7 @@ This project trains **10 separate binary classifiers** (one for each digit `0–
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure:
 
 ```
 MNIST_Model/
