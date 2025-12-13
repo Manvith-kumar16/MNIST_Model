@@ -79,7 +79,7 @@ python digit_cascade.py --test-cascade --models-dir models --threshold 0.5 --lim
 
 ---
 
-## 🖼️ Predict Your Own Image
+## 🖼️ Predict Your Own Image:
 
 Place your handwritten digit image in the project folder (e.g., `my_scan.jpg`) and run:
 
