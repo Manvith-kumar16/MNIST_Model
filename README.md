@@ -9,7 +9,7 @@ This project trains **10 separate binary classifiers** (one for each digit `0–
 
 ---
 
-## 🚀 Features
+## 🚀 Features:
 
 * Train **individual models per digit** (binary classification).
 * Evaluate a **cascade prediction pipeline** across all 10 models.
@@ -32,7 +32,7 @@ MNIST_Model/
 
 ---
 
-## ⚙️ Installation
+## ⚙️ Installation:
 
 1. Clone this repo:
 
@@ -49,7 +49,7 @@ MNIST_Model/
 
 ---
 
-## 📊 Training
+## 📊 Training:
 
 ### Train all 10 digit models
 
@@ -95,7 +95,7 @@ python digit_cascade.py --predict-file images/4.jpg --models-dir models
 
 ---
 
-## 📌 Notes
+## 📌 Notes:
 
 * Dataset: [MNIST in CSV (Kaggle)](https://www.kaggle.com/datasets/oddrationale/mnist-in-csv) or auto-download via `torchvision.datasets.MNIST`.
 * Images must be **single digits**, clear handwriting, and ideally black digit on white background.
@@ -103,7 +103,7 @@ python digit_cascade.py --predict-file images/4.jpg --models-dir models
 
 ---
 
-## ⚡ Future Improvements
+## ⚡ Future Improvements:
 
 * Train a single **multiclass classifier** (10 outputs) for better performance.
 * Add support for **EMNIST** (letters + digits).
