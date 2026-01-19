@@ -9,7 +9,7 @@ This project trains **10 separate binary classifiers** (one for each digit `0–
 
 ---
 
-## 🚀 Features:
+## 🚀 Features
 
 * Train **individual models per digit** (binary classification).
 * Evaluate a **cascade prediction pipeline** across all 10 models.
